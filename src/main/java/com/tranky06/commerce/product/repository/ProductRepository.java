@@ -1,0 +1,13 @@
+package com.tranky06.commerce.product.repository;
+
+import com.tranky06.commerce.product.domain.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    Optional<Product> findBySku(String sku);
+
+    boolean existsBySku(String sku);
+}
