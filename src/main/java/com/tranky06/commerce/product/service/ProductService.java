@@ -1,5 +1,6 @@
 package com.tranky06.commerce.product.service;
 
+import com.tranky06.commerce.product.exception.DuplicateSkuException;
 import com.tranky06.commerce.product.domain.Product;
 import com.tranky06.commerce.product.dto.request.CreateProductRequest;
 import com.tranky06.commerce.product.dto.response.ProductResponse;
@@ -28,9 +29,7 @@ public class ProductService {
         );
 
         if (productRepository.existsBySku(product.getSku())) {
-            throw new IllegalArgumentException(
-                    "Product with SKU " + product.getSku() + " already exists"
-            );
+            throw new DuplicateSkuException(product.getSku());
         }
 
         Product savedProduct = productRepository.save(product);
