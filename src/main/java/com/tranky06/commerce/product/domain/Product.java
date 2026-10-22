@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Locale;
 
 @Getter
 @Entity
@@ -53,6 +54,24 @@ public class Product {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    public static Product create(
+            String sku,
+            String name,
+            String description,
+            BigDecimal price,
+            Integer stockQuantity
+    ) {
+        Product product = new Product();
+        product.sku = sku.trim().toUpperCase(Locale.ROOT);
+        product.name = name.trim();
+        product.description = description == null ? null : description.trim();
+        product.price = price;
+        product.stockQuantity = stockQuantity;
+        product.active = true;
+
+        return product;
+    }
 
     @PrePersist
     void beforeInsert() {
