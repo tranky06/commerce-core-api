@@ -1,6 +1,7 @@
 package com.tranky06.commerce.product.service;
 
 import com.tranky06.commerce.product.exception.DuplicateSkuException;
+import com.tranky06.commerce.product.exception.ProductNotFoundException;
 import com.tranky06.commerce.product.domain.Product;
 import com.tranky06.commerce.product.dto.request.CreateProductRequest;
 import com.tranky06.commerce.product.dto.response.ProductResponse;
@@ -35,5 +36,12 @@ public class ProductService {
         Product savedProduct = productRepository.save(product);
 
         return ProductResponse.from(savedProduct);
+    }
+
+    public ProductResponse getProductById(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        return ProductResponse.from(product);
     }
 }

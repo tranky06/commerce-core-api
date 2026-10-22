@@ -25,6 +25,10 @@ public class SecurityConfig {
                                 HttpMethod.POST,
                                 "/api/v1/products"
                         ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/products/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 );
 

@@ -1,6 +1,7 @@
 package com.tranky06.commerce.common.exception;
 
 import com.tranky06.commerce.product.exception.DuplicateSkuException;
+import com.tranky06.commerce.product.exception.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,21 @@ public class GlobalExceptionHandler {
                 );
 
         problemDetail.setTitle("Duplicate product SKU");
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ProblemDetail handleProductNotFound(
+            ProductNotFoundException exception
+    ) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage()
+                );
+
+        problemDetail.setTitle("Product not found");
 
         return problemDetail;
     }
