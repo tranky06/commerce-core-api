@@ -8,6 +8,8 @@ import com.tranky06.commerce.product.dto.response.ProductResponse;
 import com.tranky06.commerce.product.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,5 +45,11 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(id));
 
         return ProductResponse.from(product);
+    }
+
+    public Page<ProductResponse> getProducts(Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        return productPage.map(ProductResponse::from);
     }
 }

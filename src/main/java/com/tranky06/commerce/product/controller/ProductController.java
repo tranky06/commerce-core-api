@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -39,5 +43,18 @@ public class ProductController {
             @PathVariable("id") Long id
     ) {
         return productService.getProductById(id);
+    }
+
+    @GetMapping
+    public PagedModel<ProductResponse> getProducts(
+            @PageableDefault(
+                    page = 0,
+                    size = 10,
+                    sort = "id",
+                    direction = Sort.Direction.ASC
+            )
+            Pageable pageable
+    ) {
+        return new PagedModel<>(productService.getProducts(pageable));
     }
 }
