@@ -73,6 +73,18 @@ public class Product {
         return product;
     }
 
+    public void updateDetails(
+            String name,
+            String description,
+            BigDecimal price
+    ) {
+        this.name = name.trim();
+        this.description = description == null
+                ? null
+                : description.trim();
+        this.price = price;
+    }
+
     @PrePersist
     void beforeInsert() {
         Instant now = Instant.now();

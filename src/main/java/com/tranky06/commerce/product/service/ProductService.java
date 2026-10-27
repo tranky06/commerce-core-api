@@ -4,6 +4,7 @@ import com.tranky06.commerce.product.exception.DuplicateSkuException;
 import com.tranky06.commerce.product.exception.ProductNotFoundException;
 import com.tranky06.commerce.product.domain.Product;
 import com.tranky06.commerce.product.dto.request.CreateProductRequest;
+import com.tranky06.commerce.product.dto.request.UpdateProductRequest;
 import com.tranky06.commerce.product.dto.response.ProductResponse;
 import com.tranky06.commerce.product.repository.ProductRepository;
 import org.springframework.stereotype.Service;
@@ -51,5 +52,25 @@ public class ProductService {
         Page<Product> productPage = productRepository.findAll(pageable);
 
         return productPage.map(ProductResponse::from);
+    }
+
+    @Transactional
+    public ProductResponse updateProduct(
+            Long id,
+            UpdateProductRequest request
+    ) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        product.updateDetails(
+                request.name(),
+                request.description(),
+                request.price()
+        );
+
+        Product updatedProduct =
+                productRepository.saveAndFlush(product);
+
+        return ProductResponse.from(updatedProduct);
     }
 }

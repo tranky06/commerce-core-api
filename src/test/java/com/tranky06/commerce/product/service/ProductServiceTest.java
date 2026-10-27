@@ -34,6 +34,8 @@ import com.tranky06.commerce.product.exception.DuplicateSkuException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 
+import com.tranky06.commerce.product.dto.request.UpdateProductRequest;
+
 class ProductServiceTest {
 
     private final ProductRepository productRepository =
@@ -243,5 +245,71 @@ class ProductServiceTest {
 
         verify(productRepository).existsBySku(normalizedSku);
         verify(productRepository).save(any(Product.class));
+    }
+
+    @Test
+    void updateProduct_shouldThrowWhenProductDoesNotExist() {
+        Long productId = 999999L;
+
+        UpdateProductRequest request = new UpdateProductRequest(
+                "Laptop Updated",
+                "Updated description",
+                new BigDecimal("14990000.00")
+        );
+
+        when(productRepository.findById(productId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ProductNotFoundException.class,
+                () -> productService.updateProduct(productId, request)
+        );
+
+        verify(productRepository).findById(productId);
+
+        verify(productRepository, never())
+                .saveAndFlush(any(Product.class));
+    }
+
+    @Test
+    void updateProduct_shouldUpdateDetailsAndKeepSkuAndStock() {
+        Long productId = 1L;
+        BigDecimal updatedPrice = new BigDecimal("14990000.00");
+
+        Product product = Product.create(
+                "PRODUCT-TEST-008",
+                "Old Laptop",
+                "Old description",
+                new BigDecimal("15990000.00"),
+                10
+        );
+
+        ReflectionTestUtils.setField(product, "id", productId);
+
+        UpdateProductRequest request = new UpdateProductRequest(
+                " Laptop Updated ",
+                " Updated description ",
+                updatedPrice
+        );
+
+        when(productRepository.findById(productId))
+                .thenReturn(Optional.of(product));
+
+        when(productRepository.saveAndFlush(product))
+                .thenReturn(product);
+
+        ProductResponse result =
+                productService.updateProduct(productId, request);
+
+        assertEquals(productId, result.id());
+        assertEquals("Laptop Updated", result.name());
+        assertEquals("Updated description", result.description());
+        assertEquals(updatedPrice, result.price());
+        assertEquals("PRODUCT-TEST-008", result.sku());
+        assertEquals(Integer.valueOf(10), result.stockQuantity());
+        assertTrue(result.active());
+
+        verify(productRepository).findById(productId);
+        verify(productRepository).saveAndFlush(product);
     }
 }

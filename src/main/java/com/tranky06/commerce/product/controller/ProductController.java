@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
+import com.tranky06.commerce.product.dto.request.UpdateProductRequest;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -56,5 +58,13 @@ public class ProductController {
             Pageable pageable
     ) {
         return new PagedModel<>(productService.getProducts(pageable));
+    }
+
+    @PutMapping("/{id}")
+    public ProductResponse updateProduct(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UpdateProductRequest request
+    ) {
+        return productService.updateProduct(id, request);
     }
 }
