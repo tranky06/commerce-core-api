@@ -28,6 +28,12 @@ import org.springframework.data.domain.PageRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.tranky06.commerce.product.dto.request.CreateProductRequest;
+import com.tranky06.commerce.product.exception.DuplicateSkuException;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+
 class ProductServiceTest {
 
     private final ProductRepository productRepository =
@@ -72,7 +78,6 @@ class ProductServiceTest {
 
     @Test
     void getProductById_shouldReturnProductWhenProductExists() {
-        // 1. Chuẩn bị sản phẩm mẫu
         Long productId = 1L;
         BigDecimal price = new BigDecimal("15000000.00");
 
@@ -108,7 +113,6 @@ class ProductServiceTest {
 
     @Test
     void getProducts_shouldMapProductsAndPreservePagination() {
-        // 1. Chuẩn bị dữ liệu mẫu của trang thứ hai
         Pageable pageable = PageRequest.of(1, 2);
 
         Product firstProduct = Product.create(
@@ -139,18 +143,15 @@ class ProductServiceTest {
         when(productRepository.findAll(pageable))
                 .thenReturn(productPage);
 
-        // 2. Gọi service
         Page<ProductResponse> result =
                 productService.getProducts(pageable);
 
-        // 3. Kiểm tra thông tin phân trang
         assertEquals(1, result.getNumber());
         assertEquals(2, result.getSize());
         assertEquals(2, result.getNumberOfElements());
         assertEquals(5L, result.getTotalElements());
         assertEquals(3, result.getTotalPages());
 
-        // 4. Kiểm tra sản phẩm và thứ tự trả về
         assertEquals(
                 Long.valueOf(3L),
                 result.getContent().get(0).id()
@@ -170,5 +171,77 @@ class ProductServiceTest {
         );
 
         verify(productRepository).findAll(pageable);
+    }
+
+    @Test
+    void createProduct_shouldThrowWhenSkuAlreadyExists() {
+        String normalizedSku = "PRODUCT-TEST-005";
+
+        CreateProductRequest request = new CreateProductRequest(
+                " product-test-005 ",
+                "Laptop Test",
+                "San pham dung cho unit test",
+                new BigDecimal("15000000.00"),
+                10
+        );
+
+        when(productRepository.existsBySku(normalizedSku))
+                .thenReturn(true);
+
+        assertThrows(
+                DuplicateSkuException.class,
+                () -> productService.createProduct(request)
+        );
+
+        verify(productRepository).existsBySku(normalizedSku);
+
+        verify(productRepository, never())
+                .save(any(Product.class));
+    }
+
+    @Test
+    void createProduct_shouldSaveAndReturnProductWhenSkuDoesNotExist() {
+        String normalizedSku = "PRODUCT-TEST-006";
+        BigDecimal price = new BigDecimal("15000000.00");
+
+        CreateProductRequest request = new CreateProductRequest(
+                " product-test-006 ",
+                " Laptop Test ",
+                " San pham dung cho unit test ",
+                price,
+                10
+        );
+
+        when(productRepository.existsBySku(normalizedSku))
+                .thenReturn(false);
+
+        when(productRepository.save(any(Product.class)))
+                .thenAnswer(invocation -> {
+                    Product productToSave = invocation.getArgument(0);
+
+                    ReflectionTestUtils.setField(
+                            productToSave,
+                            "id",
+                            6L
+                    );
+
+                    return productToSave;
+                });
+
+        ProductResponse result = productService.createProduct(request);
+
+        assertEquals(Long.valueOf(6L), result.id());
+        assertEquals(normalizedSku, result.sku());
+        assertEquals("Laptop Test", result.name());
+        assertEquals(
+                "San pham dung cho unit test",
+                result.description()
+        );
+        assertEquals(price, result.price());
+        assertEquals(Integer.valueOf(10), result.stockQuantity());
+        assertTrue(result.active());
+
+        verify(productRepository).existsBySku(normalizedSku);
+        verify(productRepository).save(any(Product.class));
     }
 }
